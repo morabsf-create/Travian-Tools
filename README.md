@@ -6,44 +6,30 @@ An advanced, browser-based resource and building planner for the strategy game *
 
 ## 🚀 Features
 
-The Travian Planner is divided into two main sections:
+The repository is a small hub of client-side tools: **Capital Planner**, **Troop Calculator** and **Hammer Tracker**.
 
-### 1. 📝 Pianificatore (Planner)
+### 🏛️ Capital Planner
 
-This is the core optimization engine. It provides a detailed, step-by-step development order designed to minimize the cost-to-gain ratio (ROI) of each upgrade.
+Builds a step-by-step development order for a capital, always choosing the upgrade that pays itself back fastest (lowest cost ÷ production gain).
 
-* **Optimal Path Calculation:** Determines the best next upgrade (field, factory, or oasis) to maximize weighted production gain per resource cost.
-* **Custom Configurations:** Configure key variables that affect production:
-    * **Village Type:** Supports all standard resource field distributions (e.g., 4-4-4-6, 3-3-3-9, 0-0-0-18 Croppers, etc.).
-    * **Tribe:** Accounts for tribe-specific bonuses (e.g., Egyptian Waterworks).
-    * **Bonuses:** Apply Gold Club (25%) production bonus.
-    * **Max Level:** Set the maximum level to which fields should be upgraded (e.g., max Lvl 19 or Lvl 20).
-    * **Oases:** Input up to 3 nearby Oases to factor in their production boosts.
-    * **Production Buildings:** Enable/disable factories, mills, bakeries, and waterworks for planning flexibility.
-* **Resource Weighting:** Use weights (1 to 5) to prioritize the development of specific resources (Wood, Clay, Iron, Crop).
-* **Results Summary:** Displays the final total hourly production, total resources spent, and the total **Time to Recover (ROI)**.
-* **Save/Load Config:** Easily save and load your planning configurations using JSON files.
-
-### 2. 📊 Laboratorio Analisi (Analysis Lab)
-
-This section allows for comparison of up to three different scenarios (A, B, and C) to visualize the growth rate of their overall production.
-
-* **Scenario Comparison:** Input different configurations (e.g., Cropper vs. Balanced, or weighted vs. unweighted development) and compare their production curves side-by-side on a Chart.js graph.
-* **Visual Growth Curve:** Visualize how total production (Real Total Production) increases over the optimization steps for each scenario.
-
----
+* **Field layouts:** all standard distributions (4-4-4-6, 3-3-3-9, 1-1-1-15, 0-0-0-18, the 7-croppers, 5-x variants).
+* **Current village:** enter your current field levels, production buildings, Hero's Mansion and already-annexed oases to plan from where you are instead of from level 0.
+* **Production buildings:** Sawmill, Brickyard, Iron Foundry, Grain Mill, Bakery and (Egyptians) Waterworks, with their prerequisites.
+* **Oases:** up to 3, including 50% wood/clay/iron/crop oases. Hero's Mansion 10/15/20 is planned as one package together with the oasis it unlocks.
+* **Bonus stacking:** additive (Travian Legends / T4: gold, oases and buildings are summed on base production) or the older T3 rule (gold multiplies the other bonuses).
+* **Server speed:** scales production so payback times are in real hours on speed servers.
+* **Results:** start/final hourly production, total cost, overall payback, and a grouped build list with per-step cost and payback. A chart tab shows production against resources invested.
 
 ## 🛠️ Usage
 
-The planner is entirely **client-side** and runs directly in your browser.
+Everything is **client-side**: open `index.html` in a browser (or the GitHub Pages site) and pick a tool.
 
-1.  **Open the HTML file:** Simply open the `index.html` file in any modern web browser.
-2.  **Configure Your Village:**
-    * Go to the **📝 Pianificatore** tab.
-    * Select your **Villaggio** (Village) template, **Tribù** (Tribe), and **Bonus**.
-    * Adjust the **Pesi (Weights)** for Wood, Clay, Iron, and Crop based on your needs (e.g., set Crop to 5 for a Cropper village).
-3.  **Calculate:** Click the **`Calcola Percorso Ottimale`** (Calculate Optimal Path) button.
-4.  **Analyze Results:** The results table will populate, showing the optimized development sequence, step-by-step cost, and current village state.
+For the Capital Planner:
+
+1. Choose field layout, max level, tribe, gold bonus, bonus stacking and server speed.
+2. Select your oases and tick **owned** for those already annexed.
+3. Optionally fill in **Current Village** (e.g. `17,17,18,…` for croplands) and **Current Buildings**.
+4. Click **Calculate Optimal Path** and follow the build list top to bottom.
 
 ---
 
@@ -52,23 +38,20 @@ The planner is entirely **client-side** and runs directly in your browser.
 The planner is built using plain HTML, CSS, and vanilla JavaScript.
 
 * **Engine:** The core logic is handled by the `TravianEngine` class, which implements a greedy algorithm.
-* **Optimization Metric:** The key metric is **ROI (Return on Investment)**, calculated as:
-    $$\text{Adjusted Cost} / \text{Weighted Production Gain}$$
-    The algorithm always selects the upgrade with the lowest ROI.
+* **Optimization Metric:** payback time, calculated as:
+    $$\text{Total upgrade cost} / \text{Gross hourly production gain}$$
+    The algorithm always selects the upgrade with the lowest payback. Gross production ignores crop upkeep of new population.
 * **Dependencies:**
-    * **Chart.js:** Used for generating the production growth charts in the Analysis Lab tab.
+    * **Chart.js:** Used for the production chart in the Capital Planner.
     * **Google Fonts:** `Roboto` (for data) and `Vollkorn` (for headings) for styling.
 
 ---
 
 ## 📝 Configuration and Development
 
-The optimization parameters and game data are defined in the `GAME_DATA` object within the JavaScript:
+Game data lives in `js/data.js`:
 
-* **`GAME_DATA.COSTS` / `GAME_DATA.FIELDS`:** Contains all the resource costs and production values for fields and buildings (levels 1-24).
-* **`GAME_DATA.PREREQS`:** Defines the building prerequisites (e.g., Mill level 5 needed for Bakery).
+* **`BUILDING_DB`:** base costs, cost growth factor (`k`) and max level per building; `getBuildingCost(name, level)` rounds to 5 like the game.
+* **`PRODUCTION_CURVE`:** base hourly production of a resource field per level (speed 1×).
 
-If game data changes in a new Travian version, these objects can be easily updated in the JavaScript section to maintain accuracy.
-
-
-
+Capital-planner rules (templates, factory prerequisites, oasis slots) are at the top of `calculators/capital-planner/app.js`.
