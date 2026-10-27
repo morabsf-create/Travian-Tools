@@ -9,6 +9,37 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .controls-grid.two-col { grid-template-columns: 2fr 1fr; }
+        .control-group input[type="text"] {
+            width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px;
+            font-size: 0.9rem; font-family: 'Roboto', sans-serif; box-sizing: border-box;
+        }
+        .control-group input:disabled { background: #f0f0f0; }
+        .hint { font-family: 'Roboto', sans-serif; font-size: 0.8rem; color: #888; margin: -4px 0 12px; }
+        .oasis-row { display: flex; gap: 8px; align-items: center; }
+        .oasis-row select { flex: 1; }
+        .oasis-row .checkbox-item { white-space: nowrap; font-size: 0.75rem; }
+        .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+        .building-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 10px; }
+        .count { text-transform: none; font-weight: normal; }
+        #output-grouped th:nth-child(1) { width: 4%; }
+        #output-grouped th:nth-child(2) { width: 32%; }
+        #output-grouped th:nth-child(3), #output-grouped th:nth-child(4),
+        #output-grouped th:nth-child(5) { width: 12%; }
+        #output-grouped tr.row-wood td:first-child { border-left: 4px solid #66bb6a; }
+        #output-grouped tr.row-clay td:first-child { border-left: 4px solid #ffa726; }
+        #output-grouped tr.row-iron td:first-child { border-left: 4px solid #9e9e9e; }
+        #output-grouped tr.row-crop td:first-child { border-left: 4px solid #fdd835; }
+        #output-grouped tr.row-building td:first-child { border-left: 4px solid #7e57c2; }
+        #output-grouped tr.row-oasis td:first-child { border-left: 4px solid #1e88e5; }
+        .state-cell { font-size: 0.85em; color: #555; }
+        .muted { color: #888; font-size: 0.85em; }
+        .empty-note { padding: 15px; font-family: 'Roboto', sans-serif; }
+        @media (max-width: 768px) {
+            .controls-grid.two-col, .building-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
 </head>
 <body>
 
@@ -53,8 +84,8 @@
                 <div class="control-group">
                     <label>Max Level</label>
                     <div class="range-wrapper">
-                        <input type="range" id="maxLevelRange" min="1" max="21" value="18" oninput="document.getElementById('maxLevel').value=this.value">
-                        <input type="number" id="maxLevel" value="18" min="1" max="21" class="range-value" style="width:50px; border:none; background:transparent;" readonly>
+                        <input type="range" id="maxLevelRange" min="1" max="21" value="20" oninput="document.getElementById('maxLevel').value=this.value">
+                        <input type="number" id="maxLevel" value="20" min="1" max="21" class="range-value" style="width:50px; border:none; background:transparent;" readonly>
                     </div>
                 </div>
                 <div class="control-group">
@@ -71,51 +102,42 @@
                         <option value="1.0">Disabled</option>
                     </select>
                 </div>
+                <div class="control-group">
+                    <label>Bonus Stacking</label>
+                    <select id="stacking">
+                        <option value="additive">Additive (Travian Legends / T4)</option>
+                        <option value="multiplicative">Gold multiplies other bonuses (T3)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Server Speed (×)</label>
+                    <input type="number" id="speed" value="1" min="1" step="1">
+                </div>
             </div>
 
             <div class="control-section var-b">
                 <h3 class="section-title">Conquerable Oases</h3>
+                <p class="hint">Tick “owned” for oases already annexed. Hero's Mansion 10/15/20 unlocks slots 1/2/3.</p>
                 <div class="control-group">
                     <label>Oasis 1</label>
-                    <select id="oasis1">
-                        <option value="none">None</option>
-                        <option value="crop-25">🌾 Crop 25%</option>
-                        <option value="crop-50">🌾 Crop 50%</option>
-                        <option value="wood-25">🌲 Wood 25%</option>
-                        <option value="wood-25_crop-25">🌲 Wood 25% + 🌾 Crop 25%</option>
-                        <option value="clay-25">🧱 Clay 25%</option>
-                        <option value="clay-25_crop-25">🧱 Clay 25% + 🌾 Crop 25%</option>
-                        <option value="iron-25">⚒️ Iron 25%</option>
-                        <option value="iron-25_crop-25">⚒️ Iron 25% + 🌾 Crop 25%</option>
-                    </select>
+                    <div class="oasis-row">
+                        <select id="oasis1"></select>
+                        <label class="checkbox-item"><input type="checkbox" id="oasis1-owned"> owned</label>
+                    </div>
                 </div>
                 <div class="control-group">
                     <label>Oasis 2</label>
-                    <select id="oasis2">
-                        <option value="none">None</option>
-                        <option value="crop-25">🌾 Crop 25%</option>
-                        <option value="crop-50">🌾 Crop 50%</option>
-                        <option value="wood-25">🌲 Wood 25%</option>
-                        <option value="wood-25_crop-25">🌲 Wood 25% + 🌾 Crop 25%</option>
-                        <option value="clay-25">🧱 Clay 25%</option>
-                        <option value="clay-25_crop-25">🧱 Clay 25% + 🌾 Crop 25%</option>
-                        <option value="iron-25">⚒️ Iron 25%</option>
-                        <option value="iron-25_crop-25">⚒️ Iron 25% + 🌾 Crop 25%</option>
-                    </select>
+                    <div class="oasis-row">
+                        <select id="oasis2"></select>
+                        <label class="checkbox-item"><input type="checkbox" id="oasis2-owned"> owned</label>
+                    </div>
                 </div>
                 <div class="control-group">
                     <label>Oasis 3</label>
-                    <select id="oasis3">
-                        <option value="none">None</option>
-                        <option value="crop-25">🌾 Crop 25%</option>
-                        <option value="crop-50">🌾 Crop 50%</option>
-                        <option value="wood-25">🌲 Wood 25%</option>
-                        <option value="wood-25_crop-25">🌲 Wood 25% + 🌾 Crop 25%</option>
-                        <option value="clay-25">🧱 Clay 25%</option>
-                        <option value="clay-25_crop-25">🧱 Clay 25% + 🌾 Crop 25%</option>
-                        <option value="iron-25">⚒️ Iron 25%</option>
-                        <option value="iron-25_crop-25">⚒️ Iron 25% + 🌾 Crop 25%</option>
-                    </select>
+                    <div class="oasis-row">
+                        <select id="oasis3"></select>
+                        <label class="checkbox-item"><input type="checkbox" id="oasis3-owned"> owned</label>
+                    </div>
                 </div>
             </div>
             
@@ -132,15 +154,41 @@
             </div>
         </div>
 
+        <div class="controls-grid two-col">
+            <div class="control-section var-a">
+                <h3 class="section-title">Current Village (optional)</h3>
+                <p class="hint">Field levels separated by commas. Leave empty to plan from a fresh village (all level 0).</p>
+                <div class="field-grid">
+                    <div class="control-group"><label>🌲 Woodcutters <span class="count" id="count-wood"></span></label><input type="text" id="start-wood"></div>
+                    <div class="control-group"><label>🧱 Clay Pits <span class="count" id="count-clay"></span></label><input type="text" id="start-clay"></div>
+                    <div class="control-group"><label>⚒️ Iron Mines <span class="count" id="count-iron"></span></label><input type="text" id="start-iron"></div>
+                    <div class="control-group"><label>🌾 Croplands <span class="count" id="count-crop"></span></label><input type="text" id="start-crop"></div>
+                </div>
+            </div>
+            <div class="control-section var-c">
+                <h3 class="section-title">Current Buildings</h3>
+                <div class="building-grid">
+                    <div class="control-group"><label>Sawmill</label><input type="number" id="start-sawmill" value="0" min="0" max="5"></div>
+                    <div class="control-group"><label>Brickyard</label><input type="number" id="start-brickyard" value="0" min="0" max="5"></div>
+                    <div class="control-group"><label>Foundry</label><input type="number" id="start-foundry" value="0" min="0" max="5"></div>
+                    <div class="control-group"><label>Mill</label><input type="number" id="start-mill" value="0" min="0" max="5"></div>
+                    <div class="control-group"><label>Bakery</label><input type="number" id="start-bakery" value="0" min="0" max="5"></div>
+                    <div class="control-group"><label>Waterw.</label><input type="number" id="start-waterworks" value="0" min="0" max="20"></div>
+                    <div class="control-group"><label>Hero's M.</label><input type="number" id="start-hm" value="0" min="0" max="20"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="action-area">
             <button type="button" class="calc-button" onclick="UI.calculateMain()">Calculate Optimal Path</button>
         </div>
 
         <div id="results-area" style="display:none;">
             <div class="stats-box">
-                <div class="stat-item"><span class="stat-label">Hourly Prod.</span><span class="stat-value" id="final-prod">0</span></div>
+                <div class="stat-item"><span class="stat-label">Start Prod. / h</span><span class="stat-value" id="start-prod">0</span></div>
+                <div class="stat-item"><span class="stat-label">Final Prod. / h</span><span class="stat-value" id="final-prod">0</span></div>
                 <div class="stat-item"><span class="stat-label">Total Cost</span><span class="stat-value" id="final-cost">0</span></div>
-                <div class="stat-item"><span class="stat-label">Final ROI</span><span class="stat-value" id="final-roi">0h</span></div>
+                <div class="stat-item"><span class="stat-label">Overall Payback</span><span class="stat-value" id="final-roi">—</span></div>
             </div>
             <div class="collapsible-header">Optimized Development Order</div>
             <div class="collapsible-content">
